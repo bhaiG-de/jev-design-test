@@ -1,10 +1,4 @@
 #!/usr/bin/env node
-// Rerunnable canvas benchmark. Seeds 12 dashboard frames, then measures
-// settle cost, overview pan, and inspect remount.
-//
-//   node scripts/perf-canvas.mjs [out.json]
-//
-// Expects the Vite app at http://localhost:5174.
 
 import { mkdir, writeFile } from "node:fs/promises"
 import { dirname, resolve } from "node:path"

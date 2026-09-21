@@ -41,7 +41,7 @@ const COLS = 4
 const CELL_W = FRAME_WIDTH + 24
 const CELL_H = FRAME_HEIGHT + 60
 const BATCH_GAP = 80
-const REVEAL_STEP = 120 // ms between frame arrivals (mount + reveal), random order
+const REVEAL_STEP = 120
 
 const nodeTypes = { pageFrame: PageFrameNode }
 
@@ -129,11 +129,6 @@ function SectionCanvasInner() {
     }
   }, [fitView, setNodes])
 
-  // Frame bitmaps bake the theme in. Re-theming everything in one commit
-  // (12+ full-page remounts) froze the viewport, so a theme change sweeps
-  // diagonally across the mounted frames, one per tick, cross-fading each
-  // from its stale bitmap; off-screen frames are simply invalidated and
-  // re-capture when they scroll in. Captures pause until the sweep ends.
   const [sweep, setSweep] = useState<{ key: number; duration: number } | null>(
     null
   )
@@ -151,8 +146,6 @@ function SectionCanvasInner() {
         .sort((a, b) => a.r.left + a.r.top - (b.r.left + b.r.top))
       const mountedIds = new Set(mounted.map((m) => m.id))
       const bump = (ids: Set<string>) =>
-        // A transition lets React time-slice the heavy page remounts instead of
-        // blocking a frame per page.
         startTransition(() => {
           setNodes((prev) =>
             prev.map((n) =>
@@ -162,7 +155,6 @@ function SectionCanvasInner() {
             )
           )
         })
-      // Off-screen frames just get the new epoch; they re-render when they scroll in.
       bump(new Set(nodes.map((n) => n.id).filter((id) => !mountedIds.has(id))))
       if (mounted.length === 0) return
       const step = Math.min(160, 3000 / mounted.length)
@@ -197,8 +189,6 @@ function SectionCanvasInner() {
         (_, i) => `${batch}-${i}`
       )
 
-      // Frames land on the canvas immediately as shimmering placeholders so
-      // the request feels instant; Jev's answer fills them in.
       const placeholders: PageFrameNodeType[] = ids.map((id, i) => ({
         id,
         type: "pageFrame",
@@ -225,16 +215,11 @@ function SectionCanvasInner() {
 
       try {
         const result = await generatePage(query)
-        // One Jev call already ran; N combos are sampled from its per-slot
-        // distributions here, with no further model calls.
         const samples = sampleJoint(
           result.distributions,
           VARIANT_COUNT,
           getPage(result.pageId)?.exclude
         )
-        // Stagger the arrivals: mounting 20 full pages in one commit would
-        // freeze the viewport for hundreds of ms. Each frame fills in on its
-        // own tick, in random order, and blur-fades as it lands.
         const order = shuffledIndices(VARIANT_COUNT)
         pauseCaptures()
         for (const i of order) {
@@ -284,13 +269,9 @@ function SectionCanvasInner() {
           nodeTypes={nodeTypes}
           minZoom={0.05}
           colorMode={theme === "dark" ? "dark" : "light"}
-
-          // Virtualise: frames outside the viewport are not mounted at all.
           onlyRenderVisibleElements
-          // No DOM captures while panning/zooming.
           onMoveStart={pauseCaptures}
           onMoveEnd={resumeCaptures}
-          // Double-click a frame to zoom to it; double-click the pane to see all.
           onNodeDoubleClick={(_, node) =>
             fitView({ nodes: [{ id: node.id }], duration: 400, padding: 0.05 })
           }
@@ -302,7 +283,6 @@ function SectionCanvasInner() {
         >
           <Background color="var(--canvas-dot)" gap={20} size={1} />
         </ReactFlow>
-        {/* Shine that rides the re-theme sweep across the viewport. */}
         <AnimatePresence>
           {sweep && (
             <motion.div

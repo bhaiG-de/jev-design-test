@@ -7,11 +7,6 @@ import {
 import workerUrl from "modern-screenshot/worker?url"
 import { useEffect, useState, useSyncExternalStore } from "react"
 
-// Level-of-detail store for canvas frames (the Figma trick): a frame is live
-// React DOM only while it holds the single capture slot, or while the user
-// has that frame selected. Otherwise it is one <img>. Canvas zoom never
-// remounts every visible page.
-
 export interface Snapshot {
   url: string
   /** Theme epoch the bitmap was captured under; a newer epoch on the node means "stale, re-render". */
@@ -75,7 +70,6 @@ export function subscribeCapture(listener: () => void) {
   return () => captureWaiters.delete(listener)
 }
 
-/** At most one uncaptured frame mounts live DOM. Everyone else waits. */
 export function useCapturePermit(id: string, needed: boolean) {
   const [held, setHeld] = useState(false)
   useEffect(() => {
@@ -111,9 +105,8 @@ export function snapshotStats() {
   }
 }
 
-/** Drop every bitmap (theme changed, canvas cleared). Frames go live and re-capture lazily. */
 export function invalidateSnapshots(ids?: Iterable<string>) {
-  fontCssPromise = null // theme may have loaded new font families
+  fontCssPromise = null
   resetCaptureContext()
   const targets = ids ? [...ids] : [...urls.keys()]
   const old: string[] = []
@@ -122,14 +115,11 @@ export function invalidateSnapshots(ids?: Iterable<string>) {
     if (u) old.push(u.url)
     urls.delete(id)
   }
-  // Frames cross-fade from the stale bitmap to the fresh live page, so the
-  // old URLs must outlive this call by a moment.
   if (old.length)
     setTimeout(() => old.forEach((u) => URL.revokeObjectURL(u)), 4000)
   emitMany(targets)
 }
 
-// ---- font embedding, computed once ---------------------------------------
 // modern-screenshot re-fetches and base64-encodes every @font-face on each
 // capture (the bulk of a capture's time). Build that CSS once for the latin
 // faces currently loaded and hand it over via `font.cssText`.
@@ -142,12 +132,12 @@ function fontCss(): Promise<string> {
       try {
         rules = sheet.cssRules
       } catch {
-        continue // cross-origin sheet (Google Fonts): fonts already in document.fonts, handled below
+        continue
       }
       for (const rule of Array.from(rules)) {
         if (!(rule instanceof CSSFontFaceRule)) continue
         const range = rule.style.getPropertyValue("unicode-range")
-        if (range && !/U\+0{0,2}0-|U\+0{0,2}4/i.test(range)) continue // keep latin only
+        if (range && !/U\+0{0,2}0-|U\+0{0,2}4/i.test(range)) continue
         const src = rule.style.getPropertyValue("src")
         const m = /url\(["']?([^"')]+)["']?\)/.exec(src)
         if (!m) continue
@@ -159,7 +149,6 @@ function fontCss(): Promise<string> {
             rule.cssText.replace(m[0], `url(data:font/woff2;base64,${b64})`)
           )
         } catch {
-          /* skip a face we cannot fetch */
         }
       }
     }
@@ -167,10 +156,6 @@ function fontCss(): Promise<string> {
   })())
 }
 
-// ---- interaction gate -----------------------------------------------------
-// A capture clones a full page's DOM (hundreds of ms). It must never overlap
-// a pan/zoom or a batch landing, so the queue only advances after the canvas
-// has been quiet for a moment.
 let busy = 0
 let quietSince = 0
 const QUIET_MS = 350
@@ -186,11 +171,6 @@ function canRun() {
   return busy === 0 && performance.now() - quietSince >= QUIET_MS
 }
 
-// ---- capture --------------------------------------------------------------
-// One modern-screenshot Context is reused across captures: creating one
-// spins up a sandbox iframe (default computed styles per tag), a worker and
-// re-parses fonts — the fixed cost that made each capture ~1s. Reset on
-// invalidate (fonts may change).
 let ctx: Context | null = null
 let clipBottom = 0
 async function capture(el: HTMLElement): Promise<Blob | null> {
@@ -202,7 +182,6 @@ async function capture(el: HTMLElement): Promise<Blob | null> {
     ctx = await createContext(el, {
       width,
       height,
-      // 2× a 360px frame = 720px: crisp on a 2× display up to INSPECT_ZOOM.
       scale: 2,
       type: "image/webp",
       quality: 0.82,
@@ -226,8 +205,6 @@ function resetCaptureContext() {
   if (ctx) destroyContext(ctx)
   ctx = null
 }
-
-// ---- capture queue -------------------------------------------------------
 
 type Job = { id: string; el: HTMLElement; epoch: number; waits?: number }
 const queue: Job[] = []
@@ -274,14 +251,10 @@ function pump() {
   const job = queue.shift()!
   idle(async () => {
     if (!canRun()) {
-      // Interaction started while we waited: put it back, try later.
       queue.unshift(job)
       setTimeout(pump, QUIET_MS)
       return
     }
-    // A shader backdrop inside is still rendering (live WebGL canvas, or
-    // waiting on a shared render): capturing now would bake a frame without
-    // its backdrop, or with the canvas clone painted over the content.
     if (
       job.el.querySelector("[data-shader-pending]") &&
       (job.waits = (job.waits ?? 0) + 1) < 20
@@ -295,7 +268,6 @@ function pump() {
       try {
         const t0 = performance.now()
         const blob = await capture(job.el)
-        // A ~1kB webp is a blank frame (clone came back empty): don't cache it.
         if (blob && blob.size > 3000 && queued.has(job.id)) {
           const prev = urls.get(job.id)
           urls.set(job.id, { url: URL.createObjectURL(blob), epoch: job.epoch })
@@ -318,7 +290,6 @@ function pump() {
       }
     }
     if (!retry) queued.delete(job.id)
-    // Breathe between captures so a pending frame or input gets its turn.
     setTimeout(pump, 120)
   })
 }

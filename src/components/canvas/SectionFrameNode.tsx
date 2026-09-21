@@ -17,19 +17,14 @@ export interface PageFrameData extends Record<string, unknown> {
   label: string
   pageId: string
   schema: Record<string, string>
-  /** Placeholder while Jev runs: renders a shimmer instead of a page. */
   loading?: boolean
-  /** ms before this frame fades in; set per arrival by the canvas. */
   revealDelay?: number
-  /** Stagger for the placeholder pop-in. */
   popDelay?: number
-  /** Bumped (per frame, staggered) when the theme changes; a bitmap from an older epoch is stale. */
   themeEpoch?: number
 }
 
 export type PageFrameNodeType = Node<PageFrameData, "pageFrame">
 
-// Each frame renders a full page at a fixed design viewport, scaled down.
 export const PAGE_WIDTH = 1440
 export const PAGE_HEIGHT = 1000
 export const FRAME_SCALE = 0.25
@@ -37,18 +32,13 @@ export const FRAME_WIDTH = PAGE_WIDTH * FRAME_SCALE
 export const FRAME_HEIGHT = PAGE_HEIGHT * FRAME_SCALE
 setCaptureSize(FRAME_WIDTH, FRAME_HEIGHT)
 
-// Layout settle before a capture. Long enough for the page to paint, short
-// enough that the capture slot is not held for the old 500ms reveal.
 const CAPTURE_WAIT_MS = 80
 const INSPECT_ZOOM = 1
 const selectInspecting = (s: { transform: [number, number, number] }) =>
   s.transform[2] >= INSPECT_ZOOM
 
-// Frames virtualised out of view remount later; only the first mount animates.
 const revealed = new Set<string>()
 
-// Entrances are Motion (WAAPI-accelerated opacity/transform). `initial={false}`
-// on remounts is what stops "everything reloads" when zooming.
 const EASE = [0.2, 0.8, 0.2, 1] as const
 const POP = { opacity: 0, y: 8 }
 const SETTLED = { opacity: 1, y: 0, scale: 1 }
@@ -61,7 +51,6 @@ export const PageFrameNode = memo(function PageFrameNode({
   const Page = pageRegistry[data.pageId]
   const entry = useSnapshot(id)
   const epoch = data.themeEpoch ?? 0
-  // A bitmap only counts if it was captured under this frame's current theme.
   const snapshot = entry && entry.epoch === epoch ? entry.url : null
   const needsCapture = !data.loading && !snapshot
   const captureTurn = useCapturePermit(id, needsCapture)
@@ -76,14 +65,11 @@ export const PageFrameNode = memo(function PageFrameNode({
     if (!data.loading) revealed.add(id)
   }, [id, data.loading])
 
-  // Re-theme: the old-epoch bitmap stays underneath while the fresh live
-  // page fades in over it.
   const [stale, setStale] = useState<string | null>(null)
   useEffect(() => {
     if (entry && entry.epoch !== epoch) setStale(entry.url)
   }, [entry, epoch])
 
-  // Cancel if we unmount first (virtualised out of view). Request again when visible.
   useEffect(() => {
     if (data.loading || snapshot || !live || !bodyRef.current) return
     const el = bodyRef.current
@@ -108,7 +94,6 @@ export const PageFrameNode = memo(function PageFrameNode({
       }}
       style={{ width: FRAME_WIDTH }}
     >
-      {/* Figma-style frame name above the screen, never inside it. */}
       <div
         className="mb-1 truncate font-mono text-[10px] text-muted-foreground"
         title={data.label}
@@ -122,7 +107,6 @@ export const PageFrameNode = memo(function PageFrameNode({
       <div
         ref={bodyRef}
         className="overflow-hidden bg-background shadow-sm"
-        // `contain: strict` isolates each frame's layout/paint from the rest of the canvas.
         style={{
           height: FRAME_HEIGHT,
           contain: "strict",
