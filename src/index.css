@@ -5,129 +5,534 @@
 
 @custom-variant dark (&:is(.dark *));
 
+/* Frames are 1440px pages drawn inside a browser window of any width. Tailwind's
+   responsive variants are media queries on the *window*, so a `lg:` grid inside
+   a frame collapsed whenever the app window was narrower than 1024px. Redefine
+   the breakpoints as container queries: the frame (`.theme-scope`) and the
+   document root are containers, so blocks lay out for the frame they're in. */
+@custom-variant sm (@container (width >= 40rem));
+@custom-variant md (@container (width >= 48rem));
+@custom-variant lg (@container (width >= 64rem));
+@custom-variant xl (@container (width >= 80rem));
+@custom-variant 2xl (@container (width >= 96rem));
+
 @theme inline {
-    --font-heading: var(--font-sans);
-    --font-sans: 'Inter Variable', sans-serif;
-    --color-sidebar-ring: var(--sidebar-ring);
-    --color-sidebar-border: var(--sidebar-border);
-    --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
-    --color-sidebar-accent: var(--sidebar-accent);
-    --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
-    --color-sidebar-primary: var(--sidebar-primary);
-    --color-sidebar-foreground: var(--sidebar-foreground);
-    --color-sidebar: var(--sidebar);
-    --color-chart-5: var(--chart-5);
-    --color-chart-4: var(--chart-4);
-    --color-chart-3: var(--chart-3);
-    --color-chart-2: var(--chart-2);
-    --color-chart-1: var(--chart-1);
-    --color-ring: var(--ring);
-    --color-input: var(--input);
-    --color-border: var(--border);
-    --color-destructive: var(--destructive);
-    --color-accent-foreground: var(--accent-foreground);
-    --color-accent: var(--accent);
-    --color-muted-foreground: var(--muted-foreground);
-    --color-muted: var(--muted);
-    --color-secondary-foreground: var(--secondary-foreground);
-    --color-secondary: var(--secondary);
-    --color-primary-foreground: var(--primary-foreground);
-    --color-primary: var(--primary);
-    --color-popover-foreground: var(--popover-foreground);
-    --color-popover: var(--popover);
-    --color-card-foreground: var(--card-foreground);
-    --color-card: var(--card);
-    --color-foreground: var(--foreground);
-    --color-background: var(--background);
-    --radius-sm: calc(var(--radius) * 0.6);
-    --radius-md: calc(var(--radius) * 0.8);
-    --radius-lg: var(--radius);
-    --radius-xl: calc(var(--radius) * 1.4);
-    --radius-2xl: calc(var(--radius) * 1.8);
-    --radius-3xl: calc(var(--radius) * 2.2);
-    --radius-4xl: calc(var(--radius) * 2.6);
+  --font-heading: var(--font-sans);
+  --font-sans: "Inter Variable", sans-serif;
+  --color-sidebar-ring: var(--sidebar-ring);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar: var(--sidebar);
+  --color-chart-5: var(--chart-5);
+  --color-chart-4: var(--chart-4);
+  --color-chart-3: var(--chart-3);
+  --color-chart-2: var(--chart-2);
+  --color-chart-1: var(--chart-1);
+  --color-ring: var(--ring);
+  --color-input: var(--input);
+  --color-border: var(--border);
+  --color-destructive: var(--destructive);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-accent: var(--accent);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-muted: var(--muted);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-secondary: var(--secondary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-primary: var(--primary);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-popover: var(--popover);
+  --color-card-foreground: var(--card-foreground);
+  --color-card: var(--card);
+  --color-foreground: var(--foreground);
+  --color-background: var(--background);
+  --radius-sm: calc(var(--radius) * 0.6);
+  --radius-md: calc(var(--radius) * 0.8);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) * 1.4);
+  --radius-2xl: calc(var(--radius) * 1.8);
+  --radius-3xl: calc(var(--radius) * 2.2);
+  --radius-4xl: calc(var(--radius) * 2.6);
+  --color-success: var(--success);
+  --animate-gradient: gradient 8s linear infinite;
+  --animate-shiny-text: shiny-text 8s infinite;
+  --animate-aurora: aurora 8s ease-in-out infinite alternate;
+  --animate-line-shadow: line-shadow 15s linear infinite;
+  --animate-marquee: marquee var(--duration) infinite linear;
+  --animate-marquee-vertical: marquee-vertical var(--duration) linear infinite;
+  --animate-meteor: meteor 5s linear infinite;
+  --animate-background-position-spin: background-position-spin 3000ms infinite
+    alternate;
+  --animate-orbit: orbit calc(var(--duration) * 1s) linear infinite;
+  --animate-pulse: pulse var(--duration) ease-out infinite;
+  --animate-pulse-ripple: pulse-ripple var(--duration)
+    cubic-bezier(0.16, 1, 0.3, 1) infinite;
+  --animate-rainbow: rainbow var(--speed, 2s) infinite linear;
+  --animate-ripple: ripple var(--duration, 2s) ease calc(var(--i, 0) * 0.2s)
+    infinite;
+  --animate-rippling: rippling var(--duration) ease-out;
+  --animate-shimmer-slide: shimmer-slide var(--speed) ease-in-out infinite
+    alternate;
+  --animate-spin-around: spin-around calc(var(--speed) * 2) infinite linear;
+  --animate-shine: shine var(--duration) infinite linear;
+  --animate-blink-cursor: blink-cursor 1.2s step-end infinite;
+  --color-color-5: var(--color-5);
+  --color-color-4: var(--color-4);
+  --color-color-3: var(--color-3);
+  --color-color-2: var(--color-2);
+  --color-color-1: var(--color-1);
+  @keyframes gradient {
+    to {
+      background-position: var(--bg-size, 300%) 0;
+    }
+  }
+  @keyframes shiny-text {
+    0%,
+    90%,
+    100% {
+      background-position: calc(-100% - var(--shiny-width)) 0;
+    }
+    30%,
+    60% {
+      background-position: calc(100% + var(--shiny-width)) 0;
+    }
+  }
+  @keyframes aurora {
+    0% {
+      background-position: 0% 50%;
+      transform: rotate(-5deg) scale(0.9);
+    }
+    25% {
+      background-position: 50% 100%;
+      transform: rotate(5deg) scale(1.1);
+    }
+    50% {
+      background-position: 100% 50%;
+      transform: rotate(-3deg) scale(0.95);
+    }
+    75% {
+      background-position: 50% 0%;
+      transform: rotate(3deg) scale(1.05);
+    }
+    100% {
+      background-position: 0% 50%;
+      transform: rotate(-5deg) scale(0.9);
+    }
+  }
+  @keyframes line-shadow {
+    0% {
+      background-position: 0 0;
+    }
+    100% {
+      background-position: 100% -100%;
+    }
+  }
+  @keyframes marquee {
+    from {
+      transform: translateX(0);
+    }
+    to {
+      transform: translateX(calc(-100% - var(--gap)));
+    }
+  }
+  @keyframes marquee-vertical {
+    from {
+      transform: translateY(0);
+    }
+    to {
+      transform: translateY(calc(-100% - var(--gap)));
+    }
+  }
+  @keyframes meteor {
+    0% {
+      transform: rotate(var(--angle)) translateX(0);
+      opacity: 1;
+    }
+    70% {
+      opacity: 1;
+    }
+    100% {
+      transform: rotate(var(--angle)) translateX(-500px);
+      opacity: 0;
+    }
+  }
+  @keyframes background-position-spin {
+    0% {
+      background-position: top center;
+    }
+    100% {
+      background-position: bottom center;
+    }
+  }
+  @keyframes orbit {
+    0% {
+      transform: rotate(calc(var(--angle) * 1deg))
+        translateY(calc(var(--radius) * 1px)) rotate(calc(var(--angle) * -1deg));
+    }
+    100% {
+      transform: rotate(calc(var(--angle) * 1deg + 360deg))
+        translateY(calc(var(--radius) * 1px))
+        rotate(calc((var(--angle) * -1deg) - 360deg));
+    }
+  }
+  @keyframes pulse {
+    0%,
+    100% {
+      boxshadow: 0 0 0 0 var(--pulse-color, oklch(from var(--bg) l c h / 0.5));
+    }
+    50% {
+      boxshadow: 0 0 0 var(--distance)
+        var(--pulse-color, oklch(from var(--bg) l c h / 0.5));
+    }
+  }
+  @keyframes pulse-ripple {
+    0% {
+      boxshadow: 0 0 0 0 oklch(from var(--pulse-color, var(--bg)) l c h / 1);
+    }
+    100% {
+      boxshadow: 0 0 0 var(--distance)
+        oklch(from var(--pulse-color, var(--bg)) l c h / 0);
+    }
+  }
+  @keyframes rainbow {
+    0% {
+      background-position: 0%;
+    }
+    100% {
+      background-position: 200%;
+    }
+  }
+  @keyframes ripple {
+    0%,
+    100% {
+      transform: translate(-50%, -50%) scale(1);
+    }
+    50% {
+      transform: translate(-50%, -50%) scale(0.9);
+    }
+  }
+  @keyframes rippling {
+    0% {
+      opacity: 1;
+    }
+    100% {
+      transform: scale(2);
+      opacity: 0;
+    }
+  }
+  @keyframes shimmer-slide {
+    to {
+      transform: translate(calc(100cqw - 100%), 0);
+    }
+  }
+  @keyframes spin-around {
+    0% {
+      transform: translateZ(0) rotate(0);
+    }
+    15%,
+    35% {
+      transform: translateZ(0) rotate(90deg);
+    }
+    65%,
+    85% {
+      transform: translateZ(0) rotate(270deg);
+    }
+    100% {
+      transform: translateZ(0) rotate(360deg);
+    }
+  }
+  @keyframes shine {
+    0% {
+      background-position: 0% 0%;
+    }
+    50% {
+      background-position: 100% 100%;
+    }
+    to {
+      background-position: 0% 0%;
+    }
+  }
+  @keyframes blink-cursor {
+    0%,
+    49% {
+      opacity: 1;
+    }
+    50%,
+    100% {
+      opacity: 0;
+    }
+  }
 }
 
 :root {
-    --background: oklch(1 0 0);
-    --foreground: oklch(0.147 0.004 49.25);
-    --card: oklch(1 0 0);
-    --card-foreground: oklch(0.147 0.004 49.25);
-    --popover: oklch(1 0 0);
-    --popover-foreground: oklch(0.147 0.004 49.25);
-    --primary: oklch(0.555 0.163 48.998);
-    --primary-foreground: oklch(0.987 0.022 95.277);
-    --secondary: oklch(0.967 0.001 286.375);
-    --secondary-foreground: oklch(0.21 0.006 285.885);
-    --muted: oklch(0.97 0.001 106.424);
-    --muted-foreground: oklch(0.553 0.013 58.071);
-    --accent: oklch(0.97 0.001 106.424);
-    --accent-foreground: oklch(0.216 0.006 56.043);
-    --destructive: oklch(0.577 0.245 27.325);
-    --border: oklch(0.923 0.003 48.717);
-    --input: oklch(0.923 0.003 48.717);
-    --ring: oklch(0.709 0.01 56.259);
-    --chart-1: oklch(0.869 0.005 56.366);
-    --chart-2: oklch(0.553 0.013 58.071);
-    --chart-3: oklch(0.444 0.011 73.639);
-    --chart-4: oklch(0.374 0.01 67.558);
-    --chart-5: oklch(0.268 0.007 34.298);
-    --radius: 0;
-    --sidebar: oklch(0.985 0.001 106.423);
-    --sidebar-foreground: oklch(0.147 0.004 49.25);
-    --sidebar-primary: oklch(0.666 0.179 58.318);
-    --sidebar-primary-foreground: oklch(0.987 0.022 95.277);
-    --sidebar-accent: oklch(0.97 0.001 106.424);
-    --sidebar-accent-foreground: oklch(0.216 0.006 56.043);
-    --sidebar-border: oklch(0.923 0.003 48.717);
-    --sidebar-ring: oklch(0.709 0.01 56.259);
+  --background: oklch(1 0 0);
+  --foreground: oklch(0.147 0.004 49.25);
+  --card: oklch(1 0 0);
+  --card-foreground: oklch(0.147 0.004 49.25);
+  --popover: oklch(1 0 0);
+  --popover-foreground: oklch(0.147 0.004 49.25);
+  --primary: oklch(0.555 0.163 48.998);
+  --primary-foreground: oklch(0.987 0.022 95.277);
+  --secondary: oklch(0.967 0.001 286.375);
+  --secondary-foreground: oklch(0.21 0.006 285.885);
+  --muted: oklch(0.97 0.001 106.424);
+  --muted-foreground: oklch(0.553 0.013 58.071);
+  --accent: oklch(0.97 0.001 106.424);
+  --accent-foreground: oklch(0.216 0.006 56.043);
+  --destructive: oklch(0.577 0.245 27.325);
+  --border: oklch(0.923 0.003 48.717);
+  --input: oklch(0.923 0.003 48.717);
+  --ring: oklch(0.709 0.01 56.259);
+  --chart-1: oklch(0.869 0.005 56.366);
+  --chart-2: oklch(0.553 0.013 58.071);
+  --chart-3: oklch(0.444 0.011 73.639);
+  --chart-4: oklch(0.374 0.01 67.558);
+  --chart-5: oklch(0.268 0.007 34.298);
+  --radius: 0;
+  --sidebar: oklch(0.985 0.001 106.423);
+  --sidebar-foreground: oklch(0.147 0.004 49.25);
+  --sidebar-primary: oklch(0.666 0.179 58.318);
+  --sidebar-primary-foreground: oklch(0.987 0.022 95.277);
+  --sidebar-accent: oklch(0.97 0.001 106.424);
+  --sidebar-accent-foreground: oklch(0.216 0.006 56.043);
+  --sidebar-border: oklch(0.923 0.003 48.717);
+  --sidebar-ring: oklch(0.709 0.01 56.259);
+  --success: oklch(0.432 0.095 166.913);
+  --color-1: oklch(66.2% 0.225 25.9);
+  --color-2: oklch(60.4% 0.26 302);
+  --color-3: oklch(69.6% 0.165 251);
+  --color-4: oklch(80.2% 0.134 225);
+  --color-5: oklch(90.7% 0.231 133);
 }
 
 .dark {
-    --background: oklch(0.147 0.004 49.25);
-    --foreground: oklch(0.985 0.001 106.423);
-    --card: oklch(0.216 0.006 56.043);
-    --card-foreground: oklch(0.985 0.001 106.423);
-    --popover: oklch(0.216 0.006 56.043);
-    --popover-foreground: oklch(0.985 0.001 106.423);
-    --primary: oklch(0.473 0.137 46.201);
-    --primary-foreground: oklch(0.987 0.022 95.277);
-    --secondary: oklch(0.274 0.006 286.033);
-    --secondary-foreground: oklch(0.985 0 0);
-    --muted: oklch(0.268 0.007 34.298);
-    --muted-foreground: oklch(0.709 0.01 56.259);
-    --accent: oklch(0.268 0.007 34.298);
-    --accent-foreground: oklch(0.985 0.001 106.423);
-    --destructive: oklch(0.704 0.191 22.216);
-    --border: oklch(1 0 0 / 10%);
-    --input: oklch(1 0 0 / 15%);
-    --ring: oklch(0.553 0.013 58.071);
-    --chart-1: oklch(0.869 0.005 56.366);
-    --chart-2: oklch(0.553 0.013 58.071);
-    --chart-3: oklch(0.444 0.011 73.639);
-    --chart-4: oklch(0.374 0.01 67.558);
-    --chart-5: oklch(0.268 0.007 34.298);
-    --sidebar: oklch(0.216 0.006 56.043);
-    --sidebar-foreground: oklch(0.985 0.001 106.423);
-    --sidebar-primary: oklch(0.769 0.188 70.08);
-    --sidebar-primary-foreground: oklch(0.279 0.077 45.635);
-    --sidebar-accent: oklch(0.268 0.007 34.298);
-    --sidebar-accent-foreground: oklch(0.985 0.001 106.423);
-    --sidebar-border: oklch(1 0 0 / 10%);
-    --sidebar-ring: oklch(0.553 0.013 58.071);
+  --background: oklch(0.147 0.004 49.25);
+  --foreground: oklch(0.985 0.001 106.423);
+  --card: oklch(0.216 0.006 56.043);
+  --card-foreground: oklch(0.985 0.001 106.423);
+  --popover: oklch(0.216 0.006 56.043);
+  --popover-foreground: oklch(0.985 0.001 106.423);
+  --primary: oklch(0.473 0.137 46.201);
+  --primary-foreground: oklch(0.987 0.022 95.277);
+  --secondary: oklch(0.274 0.006 286.033);
+  --secondary-foreground: oklch(0.985 0 0);
+  --muted: oklch(0.268 0.007 34.298);
+  --muted-foreground: oklch(0.709 0.01 56.259);
+  --accent: oklch(0.268 0.007 34.298);
+  --accent-foreground: oklch(0.985 0.001 106.423);
+  --destructive: oklch(0.704 0.191 22.216);
+  --border: oklch(1 0 0 / 10%);
+  --input: oklch(1 0 0 / 15%);
+  --ring: oklch(0.553 0.013 58.071);
+  --chart-1: oklch(0.869 0.005 56.366);
+  --chart-2: oklch(0.553 0.013 58.071);
+  --chart-3: oklch(0.444 0.011 73.639);
+  --chart-4: oklch(0.374 0.01 67.558);
+  --chart-5: oklch(0.268 0.007 34.298);
+  --sidebar: oklch(0.216 0.006 56.043);
+  --sidebar-foreground: oklch(0.985 0.001 106.423);
+  --sidebar-primary: oklch(0.769 0.188 70.08);
+  --sidebar-primary-foreground: oklch(0.279 0.077 45.635);
+  --sidebar-accent: oklch(0.268 0.007 34.298);
+  --sidebar-accent-foreground: oklch(0.985 0.001 106.423);
+  --sidebar-border: oklch(1 0 0 / 10%);
+  --sidebar-ring: oklch(0.553 0.013 58.071);
+  --success: oklch(0.765 0.177 163.223);
+  --color-1: oklch(66.2% 0.225 25.9);
+  --color-2: oklch(60.4% 0.26 302);
+  --color-3: oklch(69.6% 0.165 251);
+  --color-4: oklch(80.2% 0.134 225);
+  --color-5: oklch(90.7% 0.231 133);
 }
 
 @layer base {
   * {
     @apply border-border outline-ring/50;
-    }
+  }
   body {
     @apply bg-background text-foreground;
-    }
-  button:not(:disabled), [role="button"]:not(:disabled) {
+  }
+  button:not(:disabled),
+  [role="button"]:not(:disabled) {
     cursor: pointer;
-    }
+  }
   html {
     @apply font-sans;
-    }
+  }
+}
+::view-transition-old(root),
+::view-transition-new(root) {
+  animation: none;
+  mix-blend-mode: normal;
+}
+
+/* base-nova ships flat-gray chart tokens, which makes multi-series charts
+   unreadable. These are shadcn's own default-theme chart values. The theme
+   menu overrides them on :root at runtime. */
+:root {
+  --chart-1: oklch(0.646 0.222 41.116);
+  --chart-2: oklch(0.6 0.118 184.704);
+  --chart-3: oklch(0.398 0.07 227.392);
+  --chart-4: oklch(0.828 0.189 84.429);
+  --chart-5: oklch(0.769 0.188 70.08);
+}
+.dark {
+  --chart-1: oklch(0.488 0.243 264.376);
+  --chart-2: oklch(0.696 0.17 162.48);
+  --chart-3: oklch(0.769 0.188 70.08);
+  --chart-4: oklch(0.627 0.265 303.9);
+  --chart-5: oklch(0.645 0.246 16.439);
+}
+
+/* Registry blocks are authored as standalone pages (min-h-svh, py-16,
+   tinted background, centered). Inside the app shell the shell owns those
+   concerns, so strip them from the block's outer element. */
+.block-reset > * {
+  min-height: 0;
+  padding: 0;
+  background: transparent;
+  justify-content: flex-start;
+  width: 100%;
+}
+/* ...and their inner `mx-auto max-w-*` container, so the block fills the
+   content area the way dashboard blocks do; ContentFrame decides width. */
+.block-reset > * > *:not([aria-live]) {
+  margin-inline: 0;
+  max-width: none;
+  width: 100%;
+}
+/* Blocks ship their own sonner <Toaster/>; its wrapper <section aria-live>
+   is an in-flow flex sibling and would otherwise take half the row. */
+.block-reset section[aria-live] {
+  display: contents;
+}
+
+/* Chat/messaging blocks are fixed-height panels (h-[420px]..h-[640px]).
+   Inside a 1000px page frame that leaves the lower third empty, so stretch
+   the panel and let its message viewport take the slack. 720px fits under
+   the shell header plus an optional page header. */
+.block-fill > * > *:not([aria-live]) {
+  height: 720px;
+  max-height: none;
+}
+.block-fill [data-slot="card-content"] {
+  flex: 1;
+  min-height: 0;
+}
+.block-fill [data-slot="card-content"] > * {
+  height: 100%;
+}
+
+/* Site-header blocks are authored as full demo pages (header + skeleton
+   body, min-h-svh). As marketing chrome only the <header> should remain. */
+.chrome-header > section {
+  min-height: 0;
+}
+.chrome-header > section > :not(header) {
+  display: none;
+}
+
+/* Footer blocks are authored the same way (min-h-svh, vertically centered,
+   a lone leading Separator). As marketing chrome the footer should hug its
+   own content, not fill the viewport. */
+.chrome-footer > section {
+  min-height: 0;
+  justify-content: flex-start;
+}
+
+/* One container edge for the whole marketing page: header, hero, features
+   and footer all reach for this via the `container` class (the 7ovr header/
+   footer blocks already used `max-w-6xl mx-auto px-6`, which is the same
+   1152px/24px recipe below). Tailwind v4's own `container` utility has no
+   padding and no centering by default, and several shadcnblocks omitted
+   `mx-auto` entirely, which is why hero and feature content didn't line up;
+   overriding the utility once fixes every block that uses it. */
+@utility container {
+  margin-inline: auto;
+  max-width: 72rem;
+  padding-inline: 1.5rem;
+}
+
+/* shadcnblocks marketing sections are py-32 (256px vertical per section).
+   Hero breathes a bit more than features; features keep one consistent
+   top/bottom rhythm so heading baselines line up across variants. */
+.sb-hero > section {
+  padding-block: 6rem 5rem;
+}
+.sb-features > section {
+  padding-block: 5rem;
+}
+
+
+
+/* Placeholder shimmer while Jev runs: a compositor-only transform sweep.
+   Frame entrances are Motion (SectionFrameNode), not CSS. */
+.frame-shimmer {
+  position: relative;
+  overflow: hidden;
+  background: var(--muted);
+}
+.frame-shimmer::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  transform: translateX(-100%);
+  background: linear-gradient(100deg, transparent 30%, color-mix(in oklch, var(--background) 70%, transparent) 50%, transparent 70%);
+  animation: frame-shimmer 1.6s ease-in-out infinite;
+  will-change: transform;
+}
+@keyframes frame-shimmer {
+  to { transform: translateX(100%); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .frame-shimmer::after { animation: none; }
+}
+/* Blocks paint their own opaque page background (bg-background / bg-muted)
+   on their root, which would hide the backdrop (shader, dot-grid, gradient)
+   rendered behind them. Inside a backdrop host the root goes transparent;
+   inner panels keep their own colors. */
+.shader-host > section,
+.shader-host > div:not([style*="position: absolute"]) {
+  background-color: transparent;
+}
+
+/* Pages must fill the 1440×1000 frame. The shadcn sidebar shell sizes itself
+   with svh units (the real browser viewport), so inside the frame it stopped
+   short and left a strip below the chrome. Pin the page root and the fixed
+   sidebar to the frame's height instead. */
+.theme-scope > * {
+  min-height: 100%;
+}
+.theme-scope [data-slot="sidebar-container"] {
+  height: 100%;
+}
+
+
+html {
+  container-type: inline-size;
+}
+.theme-scope {
+  container-type: inline-size;
+}
+
+/* App chrome (canvas, sidebar, prompt bar) is neutral black-on-white; frames
+   get their own tokens via .theme-scope, so this never reaches a page. */
+:root {
+  --primary: oklch(0.205 0 0);
+  --primary-foreground: oklch(0.985 0 0);
+  --ring: oklch(0.708 0 0);
+}
+
+/* Canvas chrome (React Flow background) is its own light/dark toggle, driven
+   by the panel's Mode row via useTheme()/.dark on <html> — independent of
+   each frame's own theme tokens, which live under .theme-scope. */
+:root {
+  --canvas-dot: var(--color-zinc-400);
+}
+.dark {
+  --canvas-dot: var(--color-zinc-700);
 }
