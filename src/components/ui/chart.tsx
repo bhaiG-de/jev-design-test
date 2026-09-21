@@ -26,6 +26,36 @@ type ChartContextProps = {
 
 const ChartContext = React.createContext<ChartContextProps | null>(null)
 
+const STILL_SERIES = new Set<unknown>([
+  RechartsPrimitive.Area,
+  RechartsPrimitive.Bar,
+  RechartsPrimitive.Line,
+  RechartsPrimitive.Pie,
+  RechartsPrimitive.Radar,
+  RechartsPrimitive.RadialBar,
+  RechartsPrimitive.Scatter,
+])
+
+type StillProps = {
+  children?: React.ReactNode
+  isAnimationActive?: boolean | "auto"
+}
+
+/** Recharts series default to a 1s JS tween. Canvas frames capture at 80ms. */
+function stillCharts(node: React.ReactNode): React.ReactNode {
+  if (node == null || typeof node === "boolean") return node
+  if (typeof node === "string" || typeof node === "number") return node
+  if (Array.isArray(node)) return node.map(stillCharts)
+  if (!React.isValidElement<StillProps>(node)) return node
+  const children = stillCharts(node.props.children)
+  const freeze = STILL_SERIES.has(node.type)
+  if (!freeze && children === node.props.children) return node
+  return React.cloneElement(node, {
+    ...(freeze ? { isAnimationActive: false as const } : null),
+    ...(children === node.props.children ? null : { children }),
+  })
+}
+
 function useChart() {
   const context = React.useContext(ChartContext)
 
@@ -71,7 +101,7 @@ function ChartContainer({
         <RechartsPrimitive.ResponsiveContainer
           initialDimension={initialDimension}
         >
-          {children}
+          {stillCharts(children)}
         </RechartsPrimitive.ResponsiveContainer>
       </div>
     </ChartContext.Provider>
@@ -111,7 +141,11 @@ ${colorConfig
   )
 }
 
-const ChartTooltip = RechartsPrimitive.Tooltip
+function ChartTooltip(
+  props: React.ComponentProps<typeof RechartsPrimitive.Tooltip>
+) {
+  return <RechartsPrimitive.Tooltip {...props} isAnimationActive={false} />
+}
 
 function ChartTooltipContent({
   active,
