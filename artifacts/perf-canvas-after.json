@@ -1,0 +1,203 @@
+{
+  "measuredAt": "2026-09-21T09:52:58.134Z",
+  "url": "http://localhost:5174/?perf=1",
+  "seed": {
+    "pageId": "dashboard",
+    "count": 12
+  },
+  "immediately": {
+    "nodes": 12,
+    "livePages": 1,
+    "frameImages": 0,
+    "domNodes": 1117,
+    "canvases": 0,
+    "snapshots": {
+      "version": 1,
+      "count": 0,
+      "queue": 1,
+      "queued": 1,
+      "running": true,
+      "busy": 0,
+      "captureOwner": "perf-0"
+    }
+  },
+  "drainMs": 9081,
+  "peakLive": 1,
+  "peakDom": 1244,
+  "liveAtEnd": 0,
+  "snapshotsAtEnd": {
+    "version": 13,
+    "count": 12,
+    "queue": 0,
+    "queued": 0,
+    "running": false,
+    "busy": 0,
+    "captureOwner": null
+  },
+  "domAtEnd": 222,
+  "settle": {
+    "stats": {
+      "nodes": 12,
+      "livePages": 0,
+      "frameImages": 12,
+      "domNodes": 222,
+      "canvases": 0,
+      "snapshots": {
+        "version": 13,
+        "count": 12,
+        "queue": 0,
+        "queued": 0,
+        "running": false,
+        "busy": 0,
+        "captureOwner": null
+      }
+    },
+    "frameMs": {
+      "n": 0
+    },
+    "fps": {
+      "n": 0
+    },
+    "longTasks": {
+      "n": 23,
+      "min": 51,
+      "max": 749,
+      "mean": 278.5217391304348,
+      "p50": 163,
+      "p95": 618
+    },
+    "longTaskCount": 23,
+    "longTaskTotalMs": 6406
+  },
+  "settlePan": {
+    "stats": {
+      "nodes": 12,
+      "livePages": 1,
+      "frameImages": 0,
+      "domNodes": 1117,
+      "canvases": 0,
+      "snapshots": {
+        "version": 1,
+        "count": 0,
+        "queue": 1,
+        "queued": 1,
+        "running": true,
+        "busy": 1,
+        "captureOwner": "perf-0"
+      }
+    },
+    "frameMs": {
+      "n": 6,
+      "min": 16.600000000000136,
+      "max": 16.700000000000045,
+      "mean": 16.650000000000016,
+      "p50": 16.600000000000136,
+      "p95": 16.700000000000045
+    },
+    "fps": {
+      "n": 6,
+      "min": 59.88023952095792,
+      "max": 60.24096385542119,
+      "mean": 60.06060168818983,
+      "p50": 59.88023952095874,
+      "p95": 60.24096385542119
+    },
+    "longTasks": {
+      "n": 0
+    },
+    "longTaskCount": 0,
+    "longTaskTotalMs": 0
+  },
+  "overviewPan": {
+    "stats": {
+      "nodes": 12,
+      "livePages": 0,
+      "frameImages": 12,
+      "domNodes": 222,
+      "canvases": 0,
+      "snapshots": {
+        "version": 13,
+        "count": 12,
+        "queue": 0,
+        "queued": 0,
+        "running": false,
+        "busy": 0,
+        "captureOwner": null
+      }
+    },
+    "frameMs": {
+      "n": 41,
+      "min": 16.599999999998545,
+      "max": 16.80000000000109,
+      "mean": 16.665853658536566,
+      "p50": 16.69999999999891,
+      "p95": 16.80000000000109
+    },
+    "fps": {
+      "n": 41,
+      "min": 59.52380952380566,
+      "max": 60.24096385542697,
+      "mean": 60.003727903749265,
+      "p50": 59.880239520962,
+      "p95": 60.24096385542697
+    },
+    "longTasks": {
+      "n": 0
+    },
+    "longTaskCount": 0,
+    "longTaskTotalMs": 0
+  },
+  "inspect": {
+    "stats": {
+      "nodes": 12,
+      "livePages": 0,
+      "frameImages": 12,
+      "domNodes": 222,
+      "canvases": 0,
+      "snapshots": {
+        "version": 13,
+        "count": 12,
+        "queue": 0,
+        "queued": 0,
+        "running": false,
+        "busy": 0,
+        "captureOwner": null
+      }
+    },
+    "frameMs": {
+      "n": 47,
+      "min": 16.599999999998545,
+      "max": 16.80000000000109,
+      "mean": 16.665957446808495,
+      "p50": 16.69999999999891,
+      "p95": 16.700000000000728
+    },
+    "fps": {
+      "n": 47,
+      "min": 59.52380952380566,
+      "max": 60.24096385542697,
+      "mean": 60.0031306632716,
+      "p50": 59.880239520962,
+      "p95": 60.24096385542697
+    },
+    "longTasks": {
+      "n": 0
+    },
+    "longTaskCount": 0,
+    "longTaskTotalMs": 0
+  },
+  "snapshotLogs": [
+    "[snapshot] perf-0 695ms 23kB",
+    "[snapshot] perf-1 897ms 12kB",
+    "[snapshot] perf-2 415ms 12kB",
+    "[snapshot] perf-3 518ms 18kB",
+    "[snapshot] perf-4 467ms 16kB",
+    "[snapshot] perf-5 378ms 12kB",
+    "[snapshot] perf-6 388ms 13kB",
+    "[snapshot] perf-7 548ms 8kB",
+    "[snapshot] perf-8 185ms 9kB",
+    "[snapshot] perf-9 732ms 18kB",
+    "[snapshot] perf-10 716ms 16kB",
+    "[snapshot] perf-11 329ms 11kB"
+  ]
+}

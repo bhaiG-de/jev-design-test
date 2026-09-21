@@ -5,17 +5,12 @@ import {
   type Context,
 } from "modern-screenshot"
 import workerUrl from "modern-screenshot/worker?url"
-import { useSyncExternalStore } from "react"
+import { useEffect, useState, useSyncExternalStore } from "react"
 
 // Level-of-detail store for canvas frames (the Figma trick): a frame is live
-// React DOM only while it has no bitmap yet, or when the user is zoomed in
-// close on it. Otherwise it is one <img>. Hundreds of frames then cost the
-// browser hundreds of images, not hundreds of full pages to lay out and
-// re-rasterise on every zoom step.
-//
-// Captures run one at a time off the main interaction path (idle callback),
-// at 3× the frame's on-canvas size so the bitmap stays crisp until the zoom
-// at which the live DOM takes over.
+// React DOM only while it holds the single capture slot, or while the user
+// has that frame selected. Otherwise it is one <img>. Canvas zoom never
+// remounts every visible page.
 
 export interface Snapshot {
   url: string
@@ -23,32 +18,97 @@ export interface Snapshot {
   epoch: number
 }
 const urls = new Map<string, Snapshot>()
-const listeners = new Set<() => void>()
+const listenersById = new Map<string, Set<() => void>>()
 let version = 0
 
-function emit() {
+function emit(id: string) {
   version++
-  listeners.forEach((l) => l())
+  listenersById.get(id)?.forEach((l) => l())
+}
+
+function emitMany(ids: Iterable<string>) {
+  version++
+  for (const id of ids) listenersById.get(id)?.forEach((l) => l())
 }
 
 export function useSnapshot(id: string) {
   return useSyncExternalStore(
     (l) => {
-      listeners.add(l)
-      return () => listeners.delete(l)
+      let set = listenersById.get(id)
+      if (!set) {
+        set = new Set()
+        listenersById.set(id, set)
+      }
+      set.add(l)
+      return () => {
+        set!.delete(l)
+        if (set!.size === 0) listenersById.delete(id)
+      }
     },
     () => urls.get(id) ?? null
   )
 }
 
-export function useSnapshotVersion() {
-  return useSyncExternalStore(
-    (l) => {
-      listeners.add(l)
-      return () => listeners.delete(l)
-    },
-    () => version
-  )
+let captureOwner: string | null = null
+const captureWaiters = new Set<() => void>()
+
+function notifyCaptureWaiters() {
+  captureWaiters.forEach((l) => l())
+}
+
+export function tryAcquireCapture(id: string) {
+  if (captureOwner === id) return true
+  if (captureOwner !== null) return false
+  captureOwner = id
+  notifyCaptureWaiters()
+  return true
+}
+
+export function releaseCapture(id: string) {
+  if (captureOwner !== id) return
+  captureOwner = null
+  notifyCaptureWaiters()
+}
+
+export function subscribeCapture(listener: () => void) {
+  captureWaiters.add(listener)
+  return () => captureWaiters.delete(listener)
+}
+
+/** At most one uncaptured frame mounts live DOM. Everyone else waits. */
+export function useCapturePermit(id: string, needed: boolean) {
+  const [held, setHeld] = useState(false)
+  useEffect(() => {
+    if (!needed) {
+      releaseCapture(id)
+      setHeld(false)
+      return
+    }
+    if (tryAcquireCapture(id)) {
+      setHeld(true)
+      return () => releaseCapture(id)
+    }
+    const unsub = subscribeCapture(() => {
+      if (tryAcquireCapture(id)) setHeld(true)
+    })
+    return () => {
+      unsub()
+      releaseCapture(id)
+    }
+  }, [id, needed])
+  return needed && held
+}
+
+export function snapshotStats() {
+  return {
+    version,
+    count: urls.size,
+    queue: queue.length,
+    queued: queued.size,
+    running,
+    busy,
+    captureOwner,
+  }
 }
 
 /** Drop every bitmap (theme changed, canvas cleared). Frames go live and re-capture lazily. */
@@ -66,7 +126,7 @@ export function invalidateSnapshots(ids?: Iterable<string>) {
   // old URLs must outlive this call by a moment.
   if (old.length)
     setTimeout(() => old.forEach((u) => URL.revokeObjectURL(u)), 4000)
-  emit()
+  emitMany(targets)
 }
 
 // ---- font embedding, computed once ---------------------------------------
@@ -132,15 +192,17 @@ function canRun() {
 // re-parses fonts — the fixed cost that made each capture ~1s. Reset on
 // invalidate (fonts may change).
 let ctx: Context | null = null
+let clipBottom = 0
 async function capture(el: HTMLElement): Promise<Blob | null> {
   const width = captureSize.width || el.clientWidth
   const height = captureSize.height || el.clientHeight
+  clipBottom = el.getBoundingClientRect().bottom
   if (!ctx) {
     const cssText = await fontCss()
     ctx = await createContext(el, {
       width,
       height,
-      // 2× a 360px frame = 720px: crisp on a 2× display up to LIVE_ZOOM 1.
+      // 2× a 360px frame = 720px: crisp on a 2× display up to INSPECT_ZOOM.
       scale: 2,
       type: "image/webp",
       quality: 0.82,
@@ -148,16 +210,10 @@ async function capture(el: HTMLElement): Promise<Blob | null> {
       workerUrl,
       workerNumber: 1,
       features: { copyScrollbar: false, restoreScrollPosition: false },
-      // Pages are taller than the 1000px frame; whatever is clipped below
-      // it (long tables, footers) is not worth cloning.
       filter: (node) => {
-        // ctx.node is the frame being captured *now* (the context is reused).
         if (!(node instanceof Element) || !ctx || node === ctx.node) return true
         const r = node.getBoundingClientRect()
-        return (
-          r.height === 0 ||
-          r.top < (ctx.node as Element).getBoundingClientRect().bottom
-        )
+        return r.height === 0 || r.top < clipBottom
       },
       autoDestruct: false,
     } as Parameters<typeof createContext>[1])
@@ -234,6 +290,7 @@ function pump() {
       setTimeout(pump, 300)
       return
     }
+    let retry = false
     if (queued.has(job.id) && job.el.isConnected) {
       try {
         const t0 = performance.now()
@@ -243,7 +300,10 @@ function pump() {
           const prev = urls.get(job.id)
           urls.set(job.id, { url: URL.createObjectURL(blob), epoch: job.epoch })
           if (prev) setTimeout(() => URL.revokeObjectURL(prev.url), 4000)
-          emit()
+          emit(job.id)
+        } else if ((job.waits = (job.waits ?? 0) + 1) < 3) {
+          retry = true
+          queue.push(job)
         }
         if (import.meta.env.DEV)
           console.debug(
@@ -251,9 +311,13 @@ function pump() {
           )
       } catch (e) {
         console.warn("snapshot failed", job.id, e)
+        if ((job.waits = (job.waits ?? 0) + 1) < 3) {
+          retry = true
+          queue.push(job)
+        }
       }
     }
-    queued.delete(job.id)
+    if (!retry) queued.delete(job.id)
     // Breathe between captures so a pending frame or input gets its turn.
     setTimeout(pump, 120)
   })

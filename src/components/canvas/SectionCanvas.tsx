@@ -14,6 +14,7 @@ import {
   invalidateSnapshots,
   pauseCaptures,
   resumeCaptures,
+  snapshotStats,
 } from "@/lib/snapshots"
 import {
   Background,
@@ -72,6 +73,61 @@ function SectionCanvasInner() {
   // its own root, not an ancestor .dark — so canvas chrome needs it explicitly,
   // from the same theme context the Mode toggle writes to.
   const { theme } = useTheme()
+
+  useEffect(() => {
+    if (!new URLSearchParams(location.search).has("perf")) return
+    const api = {
+      seed(
+        pageId: string,
+        schemas: Record<string, string>[],
+        label = "perf"
+      ) {
+        invalidateSnapshots()
+        batchCount.current = 0
+        const ids = schemas.map((_, i) => `perf-${i}`)
+        setNodes(
+          schemas.map((schema, i) => ({
+            id: ids[i],
+            type: "pageFrame" as const,
+            position: {
+              x: (i % COLS) * CELL_W,
+              y: Math.floor(i / COLS) * CELL_H,
+            },
+            data: {
+              label: `${label} · ${Object.values(schema).join(" · ")}`,
+              pageId,
+              schema,
+              revealDelay: 0,
+              themeEpoch: themeEpoch.current,
+            },
+          }))
+        )
+        requestAnimationFrame(() =>
+          fitView({
+            nodes: ids.map((id) => ({ id })),
+            duration: 0,
+            padding: 0.08,
+          })
+        )
+        return ids
+      },
+      stats() {
+        return {
+          nodes: document.querySelectorAll(".react-flow__node").length,
+          livePages: document.querySelectorAll(".theme-scope").length,
+          frameImages: document.querySelectorAll(".react-flow__node img")
+            .length,
+          domNodes: document.getElementsByTagName("*").length,
+          canvases: document.querySelectorAll("canvas").length,
+          snapshots: snapshotStats(),
+        }
+      },
+    }
+    ;(window as Window & { __PERF?: typeof api }).__PERF = api
+    return () => {
+      delete (window as Window & { __PERF?: typeof api }).__PERF
+    }
+  }, [fitView, setNodes])
 
   // Frame bitmaps bake the theme in. Re-theming everything in one commit
   // (12+ full-page remounts) froze the viewport, so a theme change sweeps

@@ -1,0 +1,159 @@
+{
+  "measuredAt": "2026-09-21T09:48:38.095Z",
+  "url": "http://localhost:5174/?perf=1",
+  "seed": {
+    "pageId": "dashboard",
+    "count": 12
+  },
+  "immediately": {
+    "nodes": 12,
+    "livePages": 12,
+    "frameImages": 0,
+    "domNodes": 8164,
+    "canvases": 0,
+    "snapshots": {
+      "version": 1,
+      "count": 0,
+      "queue": 12,
+      "queued": 12,
+      "running": true,
+      "busy": 0
+    }
+  },
+  "drainMs": 10406,
+  "peakLive": 12,
+  "peakDom": 8225,
+  "liveAtEnd": 0,
+  "snapshotsAtEnd": {
+    "version": 13,
+    "count": 12,
+    "queue": 0,
+    "queued": 0,
+    "running": false,
+    "busy": 0
+  },
+  "domAtEnd": 222,
+  "settle": {
+    "stats": {
+      "nodes": 12,
+      "livePages": 0,
+      "frameImages": 12,
+      "domNodes": 222,
+      "canvases": 0,
+      "snapshots": {
+        "version": 13,
+        "count": 12,
+        "queue": 0,
+        "queued": 0,
+        "running": false,
+        "busy": 0
+      }
+    },
+    "frameMs": {
+      "n": 0
+    },
+    "fps": {
+      "n": 0
+    },
+    "longTasks": {
+      "n": 17,
+      "min": 60,
+      "max": 793,
+      "mean": 320.7647058823529,
+      "p50": 306,
+      "p95": 793
+    },
+    "longTaskCount": 17,
+    "longTaskTotalMs": 5453
+  },
+  "overviewPan": {
+    "stats": {
+      "nodes": 9,
+      "livePages": 0,
+      "frameImages": 9,
+      "domNodes": 207,
+      "canvases": 0,
+      "snapshots": {
+        "version": 13,
+        "count": 12,
+        "queue": 0,
+        "queued": 0,
+        "running": false,
+        "busy": 0
+      }
+    },
+    "frameMs": {
+      "n": 41,
+      "min": 16.599999999998545,
+      "max": 16.80000000000109,
+      "mean": 16.665853658536566,
+      "p50": 16.69999999999891,
+      "p95": 16.700000000000728
+    },
+    "fps": {
+      "n": 41,
+      "min": 59.52380952380566,
+      "max": 60.24096385542697,
+      "mean": 60.00351842388024,
+      "p50": 59.880239520962,
+      "p95": 60.24096385542697
+    },
+    "longTasks": {
+      "n": 0
+    },
+    "longTaskCount": 0,
+    "longTaskTotalMs": 0
+  },
+  "inspect": {
+    "stats": {
+      "nodes": 9,
+      "livePages": 0,
+      "frameImages": 9,
+      "domNodes": 207,
+      "canvases": 0,
+      "snapshots": {
+        "version": 13,
+        "count": 12,
+        "queue": 0,
+        "queued": 0,
+        "running": false,
+        "busy": 0
+      }
+    },
+    "frameMs": {
+      "n": 47,
+      "min": 16.599999999998545,
+      "max": 16.80000000000109,
+      "mean": 16.665957446808495,
+      "p50": 16.69999999999891,
+      "p95": 16.799999999999272
+    },
+    "fps": {
+      "n": 47,
+      "min": 59.52380952380566,
+      "max": 60.24096385542697,
+      "mean": 60.003404769908734,
+      "p50": 59.880239520962,
+      "p95": 60.24096385542697
+    },
+    "longTasks": {
+      "n": 0
+    },
+    "longTaskCount": 0,
+    "longTaskTotalMs": 0
+  },
+  "snapshotLogs": [
+    "[snapshot] perf-0 702ms 26kB",
+    "[snapshot] perf-1 934ms 18kB",
+    "[snapshot] perf-2 382ms 20kB",
+    "[snapshot] perf-3 464ms 24kB",
+    "[snapshot] perf-4 447ms 18kB",
+    "[snapshot] perf-5 319ms 15kB",
+    "[snapshot] perf-6 364ms 22kB",
+    "[snapshot] perf-7 578ms 13kB",
+    "[snapshot] perf-8 179ms 17kB",
+    "[snapshot] perf-9 709ms 24kB",
+    "[snapshot] perf-10 694ms 18kB",
+    "[snapshot] perf-11 424ms 15kB"
+  ]
+}

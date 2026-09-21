@@ -1,0 +1,27 @@
+{
+  "primary": "peak live page trees after a 12-frame dashboard seed",
+  "baseline": {
+    "file": "artifacts/perf-canvas-baseline.json",
+    "peakLive": 12,
+    "peakDom": 8225,
+    "drainMs": 10406,
+    "settleLongTaskTotalMs": 5453,
+    "immediatelyDom": 8164
+  },
+  "after": {
+    "file": "artifacts/perf-canvas-after.json",
+    "peakLive": 1,
+    "peakDom": 1244,
+    "drainMs": 9081,
+    "settleLongTaskTotalMs": 6406,
+    "immediatelyDom": 1117,
+    "settlePanFpsP50": 59.88,
+    "settlePanLongTaskCount": 0
+  },
+  "delta": {
+    "peakLive": "12 → 1",
+    "peakDom": "8225 → 1244",
+    "drainMs": "10406 → 9081",
+    "immediatelyDom": "8164 → 1117"
+  }
+}

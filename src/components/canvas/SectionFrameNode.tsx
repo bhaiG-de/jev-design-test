@@ -7,6 +7,7 @@ import {
   cancelSnapshot,
   requestSnapshot,
   setCaptureSize,
+  useCapturePermit,
   useSnapshot,
 } from "@/lib/snapshots"
 
@@ -36,15 +37,12 @@ export const FRAME_WIDTH = PAGE_WIDTH * FRAME_SCALE
 export const FRAME_HEIGHT = PAGE_HEIGHT * FRAME_SCALE
 setCaptureSize(FRAME_WIDTH, FRAME_HEIGHT)
 
-// Canvas zoom at which a frame swaps its bitmap for live DOM (frame = 360px
-// wide on screen, i.e. the 2× snapshot's native size on a 2× display).
-const LIVE_ZOOM = 1
-const REVEAL_MS = 500
-
-// Selecting a boolean (not the zoom number) means frames re-render only when
-// the threshold is crossed, not on every wheel tick.
-const selectZoomedIn = (s: { transform: [number, number, number] }) =>
-  s.transform[2] >= LIVE_ZOOM
+// Layout settle before a capture. Long enough for the page to paint, short
+// enough that the capture slot is not held for the old 500ms reveal.
+const CAPTURE_WAIT_MS = 80
+const INSPECT_ZOOM = 1
+const selectInspecting = (s: { transform: [number, number, number] }) =>
+  s.transform[2] >= INSPECT_ZOOM
 
 // Frames virtualised out of view remount later; only the first mount animates.
 const revealed = new Set<string>()
@@ -53,24 +51,27 @@ const revealed = new Set<string>()
 // on remounts is what stops "everything reloads" when zooming.
 const EASE = [0.2, 0.8, 0.2, 1] as const
 const POP = { opacity: 0, y: 8 }
-const REVEAL = { opacity: 0, y: 6, scale: 0.985 }
 const SETTLED = { opacity: 1, y: 0, scale: 1 }
 
 export const PageFrameNode = memo(function PageFrameNode({
   id,
   data,
+  selected,
 }: NodeProps<PageFrameNodeType>) {
   const Page = pageRegistry[data.pageId]
-  const zoomedIn = useStore(selectZoomedIn)
   const entry = useSnapshot(id)
   const epoch = data.themeEpoch ?? 0
   // A bitmap only counts if it was captured under this frame's current theme.
   const snapshot = entry && entry.epoch === epoch ? entry.url : null
+  const needsCapture = !data.loading && !snapshot
+  const captureTurn = useCapturePermit(id, needsCapture)
+  const inspecting = useStore(selectInspecting)
   const reduced = useReducedMotion()
   const bodyRef = useRef<HTMLDivElement>(null)
-  const live = !data.loading && (!snapshot || zoomedIn)
+  const live =
+    !data.loading &&
+    (captureTurn || (Boolean(snapshot) && selected && inspecting))
   const firstMount = !revealed.has(id) && !reduced
-  const reveal = live && !snapshot && firstMount
   useEffect(() => {
     if (!data.loading) revealed.add(id)
   }, [id, data.loading])
@@ -82,20 +83,19 @@ export const PageFrameNode = memo(function PageFrameNode({
     if (entry && entry.epoch !== epoch) setStale(entry.url)
   }, [entry, epoch])
 
-  // Capture once the reveal has finished; cancel if we unmount first
-  // (virtualised out of view) — it will be requested again when visible.
+  // Cancel if we unmount first (virtualised out of view). Request again when visible.
   useEffect(() => {
-    if (data.loading || snapshot || !bodyRef.current) return
+    if (data.loading || snapshot || !live || !bodyRef.current) return
     const el = bodyRef.current
     const t = setTimeout(
       () => requestSnapshot(id, el, epoch),
-      (data.revealDelay ?? 0) + REVEAL_MS
+      (data.revealDelay ?? 0) + CAPTURE_WAIT_MS
     )
     return () => {
       clearTimeout(t)
       cancelSnapshot(id)
     }
-  }, [id, data.loading, data.revealDelay, snapshot, epoch])
+  }, [id, data.loading, data.revealDelay, snapshot, epoch, live])
 
   return (
     <motion.div
@@ -142,7 +142,7 @@ export const PageFrameNode = memo(function PageFrameNode({
             }}
           />
         )}
-        {data.loading ? (
+        {data.loading || (!live && !snapshot) ? (
           <div className="frame-shimmer h-full w-full" />
         ) : !live ? (
           <img
@@ -160,7 +160,7 @@ export const PageFrameNode = memo(function PageFrameNode({
           // its `transform` would override the scale.
           <motion.div
             className="relative h-full"
-            initial={stale ? { opacity: 0 } : reveal ? REVEAL : false}
+            initial={stale ? { opacity: 0 } : false}
             animate={SETTLED}
             transition={{
               duration: stale ? 0.35 : 0.45,
