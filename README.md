@@ -4,6 +4,8 @@ Type a one-line prompt, get back a canvas full of complete, real UI screens — 
 
 There is no generative UI model here. Jev never writes JSX or copy — it only returns a probability distribution over a fixed, hand-built vocabulary of layouts. Code samples that distribution and renders the result with real components. That's why it's fast (~1-2s per generation) and why nothing ever comes out half-broken.
 
+**[▶ Watch the demo](docs/demo.mp4)** — generating a dashboard, then a calendar, across different sampled layouts.
+
 ## What it is
 
 You type something like *"metrics dashboard for a fitness app"* into the prompt bar. A batch of full-page frames appears on an infinite pannable/zoomable canvas — each one a live, real, 1440×1000 screen (not a screenshot, not a mockup) built from actual shadcn blocks. A theme sidebar can re-skin every frame at once (base color, accent, chart palette, radius, fonts) to see the same layouts under different brand tokens.
