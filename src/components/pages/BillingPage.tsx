@@ -88,7 +88,7 @@ export function BillingPage({ schema }: { schema: Record<string, string> }) {
   const Layout = LAYOUTS[schema.layout] ?? Overview;
   const width = schema.width === "contained" ? "mx-auto w-full max-w-5xl" : "w-full";
   return (
-    <AppFrame nav={schema.nav}>
+    <AppFrame nav={schema.nav} pageId="billing">
       <div className={`${width} flex flex-col gap-6 px-4 lg:px-6`}>
         <Layout />
       </div>

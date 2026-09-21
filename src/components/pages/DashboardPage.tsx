@@ -1,7 +1,6 @@
 import type { ComponentType } from "react";
 import { TrendingDownIcon, TrendingUpIcon } from "lucide-react";
 import { Bar, BarChart, CartesianGrid, XAxis } from "recharts";
-import data from "@/app/dashboard/data.json";
 import { ChartAreaGradient } from "@/components/chart-area-gradient";
 import { ChartAreaInteractive } from "@/components/chart-area-interactive";
 import { ChartBarInteractive } from "@/components/chart-bar-interactive";
@@ -12,22 +11,23 @@ import { ChartPieDonut } from "@/components/chart-pie-donut";
 import { ChartPieDonutText } from "@/components/chart-pie-donut-text";
 import { ChartRadarDefault } from "@/components/chart-radar-default";
 import { ChartRadialText } from "@/components/chart-radial-text";
-import { DataTable } from "@/components/data-table";
+import {
+  HqCell,
+  HqHead,
+  HqHeadCell,
+  HqRow,
+  HqTable,
+  RowAction,
+  StatusBadge,
+  TableBody,
+} from "@/components/hq-table";
 import { AppFrame } from "@/components/pages/AppShell";
-import { SectionCards } from "@/components/section-cards";
+import { DASHBOARD_STATS, LOANS } from "@/lib/hq-fixtures";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardAction, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { ChartContainer, ChartTooltip, ChartTooltipContent, type ChartConfig } from "@/components/ui/chart";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 
-// Fixed placeholder content, identical across every variant (same numbers
-// shadcn's dashboard-01 block ships with). Only the structure varies.
-const STATS = [
-  { label: "Total Revenue", value: "$1,250.00", trend: "+12.5%", up: true, note: "Trending up this month" },
-  { label: "New Customers", value: "1,234", trend: "-20%", up: false, note: "Down 20% this period" },
-  { label: "Active Accounts", value: "45,678", trend: "+12.5%", up: true, note: "Strong user retention" },
-  { label: "Growth Rate", value: "4.5%", trend: "+4.5%", up: true, note: "Steady performance increase" },
-];
+const STATS = DASHBOARD_STATS;
 
 // ---- kpis --------------------------------------------------------------
 
@@ -42,7 +42,22 @@ function Trend({ trend, up }: { trend: string; up: boolean }) {
 }
 
 function FourCards() {
-  return <SectionCards />;
+  return (
+    <div className="grid grid-cols-1 gap-4 px-4 *:data-[slot=card]:from-primary/5 *:data-[slot=card]:to-card *:data-[slot=card]:bg-linear-to-t lg:px-6 @xl/main:grid-cols-2 @5xl/main:grid-cols-4">
+      {STATS.map((s) => (
+        <Card key={s.label} className="@container/card">
+          <CardHeader>
+            <CardDescription>{s.label}</CardDescription>
+            <CardTitle className="text-2xl font-semibold tabular-nums @[250px]/card:text-3xl">{s.value}</CardTitle>
+            <CardAction>
+              <Trend trend={s.trend} up={s.up} />
+            </CardAction>
+          </CardHeader>
+          <CardFooter className="text-muted-foreground text-sm">{s.note}</CardFooter>
+        </Card>
+      ))}
+    </div>
+  );
 }
 
 function StatStrip() {
@@ -179,45 +194,46 @@ function FourGrid() {
 
 // ---- table -------------------------------------------------------------
 
+function LoanRecords({ compact }: { compact?: boolean }) {
+  const rows = compact ? LOANS.slice(0, 6) : LOANS;
+  return (
+    <div className="px-4 lg:px-6">
+      <HqTable>
+        <HqHead>
+          <HqHeadCell>Borrower</HqHeadCell>
+          <HqHeadCell>Pool</HqHeadCell>
+          <HqHeadCell>Outstanding</HqHeadCell>
+          <HqHeadCell>State</HqHeadCell>
+          <HqHeadCell>Health</HqHeadCell>
+          {!compact && <HqHeadCell />}
+        </HqHead>
+        <TableBody>
+          {rows.map((loan) => (
+            <HqRow key={loan.id}>
+              <HqCell className="font-medium">{loan.borrower}</HqCell>
+              <HqCell>{loan.pool}</HqCell>
+              <HqCell>{loan.principal}</HqCell>
+              <HqCell>
+                <StatusBadge value={loan.status} />
+              </HqCell>
+              <HqCell>
+                <StatusBadge value={loan.health} />
+              </HqCell>
+              {!compact && <RowAction />}
+            </HqRow>
+          ))}
+        </TableBody>
+      </HqTable>
+    </div>
+  );
+}
+
 function DataTableBlock() {
-  return <DataTable data={data} />;
+  return <LoanRecords />;
 }
 
 function SimpleList() {
-  return (
-    <div className="px-4 lg:px-6">
-      <Card>
-        <CardHeader>
-          <CardTitle>Recent sections</CardTitle>
-          <CardDescription>Latest 8 of {data.length} records</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Header</TableHead>
-                <TableHead>Type</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead className="text-right">Reviewer</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {data.slice(0, 8).map((row) => (
-                <TableRow key={row.id}>
-                  <TableCell className="font-medium">{row.header}</TableCell>
-                  <TableCell>
-                    <Badge variant="outline">{row.type}</Badge>
-                  </TableCell>
-                  <TableCell>{row.status}</TableCell>
-                  <TableCell className="text-right">{row.reviewer}</TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </CardContent>
-      </Card>
-    </div>
-  );
+  return <LoanRecords compact />;
 }
 
 function None() {
@@ -245,7 +261,7 @@ export function DashboardPage({ schema }: { schema: Record<string, string> }) {
   const Chart = CHART[schema.chart] ?? AreaFull;
   const Records = TABLE[schema.table] ?? DataTableBlock;
   return (
-    <AppFrame nav={schema.nav}>
+    <AppFrame nav={schema.nav} pageId="dashboard">
       <Kpis />
       <Chart />
       <Records />

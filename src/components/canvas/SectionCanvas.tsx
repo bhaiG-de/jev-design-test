@@ -215,10 +215,17 @@ function SectionCanvasInner() {
 
       try {
         const result = await generatePage(query)
-        const samples = sampleJoint(
+        const raw = sampleJoint(
           result.distributions,
           VARIANT_COUNT,
           getPage(result.pageId)?.exclude
+        )
+        if (raw.length === 0) throw new Error("No layouts to sample")
+        // Small page types (2 nav × 2 layouts) have fewer unique combos than
+        // VARIANT_COUNT; cycle so every placeholder fills.
+        const samples = Array.from(
+          { length: VARIANT_COUNT },
+          (_, i) => raw[i % raw.length],
         )
         const order = shuffledIndices(VARIANT_COUNT)
         pauseCaptures()

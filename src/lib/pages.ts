@@ -29,11 +29,11 @@ export interface PageTypeDef {
 // Shared by every in-product screen so Jev is asked the same navigation
 // question with the same option names everywhere.
 export const NAV_SLOT: SlotDef = {
-  instructions: "Which app navigation structure best fits this request?",
+  instructions:
+    "Maple HQ always stacks an icon rail, pages sidebar, top bar and page bar. Which pages-sidebar state fits this request?",
   criteria: {
-    sidebar: "A full left sidebar with grouped navigation links and a user footer; a slim header above the content.",
-    rail: "A narrow icon-only left rail (labels on hover) to maximise content width; slim header above the content.",
-    topbar: "No sidebar; a single horizontal top bar carrying the brand and navigation links.",
+    pinned: "Pages sidebar pinned open beside the icon rail, with labels visible (Loanbook, Collateral management, …).",
+    collapsed: "Pages sidebar collapsed; only the 45px icon rail, top bar and page bar remain, maximising the table.",
   },
 };
 
@@ -134,15 +134,16 @@ export const PAGES: PageTypeDef[] = [
     id: "dashboard",
     label: "Dashboard",
     exclude: [{ chart: "none", table: "none" }],
-    routingDescription: "An analytics or metrics overview dashboard: headline KPIs, charts and a records table for operating a product or team.",
+    routingDescription:
+      "An analytics or metrics overview dashboard for Maple HQ: AUM, active loans, utilization, pending approvals, charts and a loan records table.",
     slots: {
       nav: NAV_SLOT,
       kpis: {
-        instructions: "How should the headline metrics be presented?",
+        instructions: "How should HQ headline metrics (AUM, active loans, utilization, pending approvals) be presented?",
         criteria: {
           "four-cards": "A row of four equal stat cards, each with a label, big number, trend badge and a one-line note.",
           "stat-strip": "One compact card with all stats inline, separated by dividers; small and dense.",
-          "hero-number": "One large primary stat card beside a stack of three smaller supporting stats.",
+          "hero-number": "One large primary AUM card beside a stack of three smaller supporting stats.",
         },
       },
       chart: {
@@ -158,11 +159,59 @@ export const PAGES: PageTypeDef[] = [
         },
       },
       table: {
-        instructions: "How should the detailed records be shown?",
+        instructions: "How should the loan records be shown?",
         criteria: {
-          "data-table": "A full tabbed data table with row selection, drag handles, column controls and pagination.",
-          "simple-list": "A single card with a plain compact table of the most recent records, no controls.",
+          "data-table": "A full loan table: borrower, pool, status, outstanding, with row actions.",
+          "simple-list": "A single card with a compact table of the most recent loans, no controls.",
           none: "No table; the page is a summary view only.",
+        },
+      },
+    },
+  },
+  {
+    id: "loanbook",
+    label: "Loanbook",
+    routingDescription:
+      "The Maple HQ loanbook: the book of loans with borrower, pool, principal, collateral, APY, loan state and loan health. Operators scan and open a loan.",
+    slots: {
+      nav: NAV_SLOT,
+      layout: {
+        instructions: "How should the loanbook be laid out?",
+        criteria: {
+          "table-with-aside": "A loan table beside a details panel for the selected loan (borrower, principal, collateral, APY).",
+          "full-table": "A full-width loan table with no details panel, maximising columns.",
+        },
+      },
+    },
+  },
+  {
+    id: "collateral",
+    label: "Collateral management",
+    routingDescription:
+      "Maple HQ collateral management: collateral posted against loans, LTV, margin-call levels, loan health (Healthy, At Risk, Margin Call, Liquidation).",
+    slots: {
+      nav: NAV_SLOT,
+      layout: {
+        instructions: "How should collateral be shown?",
+        criteria: {
+          "status-table": "A full collateral table across all loans: borrower, asset, amount, LTV, health.",
+          "at-risk-focus": "The same table filtered to At Risk, Margin Call and Liquidation rows, with a short count strip.",
+        },
+      },
+    },
+  },
+  {
+    id: "borrowers",
+    label: "Borrowers",
+    routingDescription:
+      "Maple HQ borrower experience: organizations, legal entities, users and wallets the ops team administers.",
+    slots: {
+      nav: NAV_SLOT,
+      layout: {
+        instructions: "Which borrower roster should this screen lead with?",
+        criteria: {
+          "organizations-table": "A table of organizations (enterprises) with entity, user and wallet counts.",
+          "entities-table": "A table of legal entities under those organizations, with wallets and loans.",
         },
       },
     },

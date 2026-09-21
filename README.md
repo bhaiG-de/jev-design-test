@@ -8,21 +8,21 @@ There is no generative UI model here. Jev never writes JSX or copy — it only r
 
 ## What it is
 
-You type something like *"metrics dashboard for a fitness app"* into the prompt bar. A batch of full-page frames appears on an infinite pannable/zoomable canvas — each one a live, real, 1440×1000 screen (not a screenshot, not a mockup) built from actual shadcn blocks. A theme sidebar can re-skin every frame at once (base color, accent, chart palette, radius, fonts) to see the same layouts under different brand tokens.
+You type something like *"loan book dashboard"* into the prompt bar. A batch of full-page frames appears on an infinite pannable/zoomable canvas — each one a live, real, 1440×1000 screen (not a screenshot, not a mockup) built from actual shadcn blocks, chromed like Maple HQ. A theme sidebar can re-skin every frame at once (base color, accent, chart palette, radius, fonts) to see the same layouts under different brand tokens. Default tokens are Maple HQ (Geist, stone, green charts).
 
 ## How it works
 
 **1. The vocabulary — [`src/lib/pages.ts`](src/lib/pages.ts)**
-Eighteen page types are defined up front (the full list is below). Each page type is a set of named **slots** (`nav`, `content`, `layout`, `backdrop`, `chrome`, `hero`, …), and each slot has a handful of named options with a plain-English description. This file is framework-free and imported by both the server and the browser — it's the single source of truth Jev is asked about and the registry keys the renderers look up.
+Twenty-one page types are defined up front (the full list is below). Each page type is a set of named **slots** (`nav`, `content`, `layout`, `backdrop`, `chrome`, `hero`, …), and each slot has a handful of named options with a plain-English description. This file is framework-free and imported by both the server and the browser — it's the single source of truth Jev is asked about and the registry keys the renderers look up.
 
 **2. One Jev call — [`vite.config.ts`](vite.config.ts) (`jevApi` dev middleware)**
-A single `systemOne` call asks a page-routing question ("which page type fits this request?") plus *every* page type's slot questions at once — speculative fan-out in one round trip. The server keeps only the chosen page's answers and returns their probability distributions to the browser. `TYPESAFE_API_KEY` lives only in this dev-server process; the SDK requires `dangerouslyAllowBrowser` to even attempt a client-side call, which is a deliberate signal to never do that.
+A single `systemOne` call asks a page-routing question ("which page type fits this request?") plus *every* page type's slot questions at once — speculative fan-out in one round trip. The server keeps only the chosen page's answers and returns their probability distributions to the browser. The API key lives only in this dev-server process; the SDK requires `dangerouslyAllowBrowser` to even attempt a client-side call, which is a deliberate signal to never do that.
 
 **3. Sampling — [`src/lib/sample.ts`](src/lib/sample.ts)**
 Jev's raw distributions get turned into N concrete, distinct combinations: every option's probability is floored (Jev often assigns ~0 weight to perfectly reasonable options, which would otherwise never get drawn), then combos are drawn without replacement, picked greedily for maximum spread — so 12 generated frames read as 12 different ideas instead of the same top pick twelve times.
 
 **4. Rendering — [`src/components/pages/`](src/components/pages) and [`src/components/canvas/`](src/components/canvas)**
-Each sampled combo becomes one live page frame on the canvas (built on `@xyflow/react`). App-style screens render inside a shared `AppShell` (sidebar/rail/topbar nav + content frame); centered and marketing screens render standalone. Off-screen or small frames drop to a lightweight snapshot for performance, and promote back to live DOM on zoom.
+Each sampled combo becomes one live page frame on the canvas (built on `@xyflow/react`). In-product screens render inside the Maple HQ stack (icon rail + pages sidebar + top bar + page bar); Jev samples the pages sidebar **pinned** or **collapsed**. Centered and marketing screens render standalone. Off-screen or small frames drop to a lightweight snapshot for performance, and promote back to live DOM on zoom.
 
 **5. Theming — [`src/components/ThemeMenu.tsx`](src/components/ThemeMenu.tsx)**
 A live sidebar restyles every frame's tokens at once — base color, accent, chart palette, radius, fonts — without touching the app's own chrome.
@@ -34,6 +34,9 @@ Every row is a page type Jev can route a prompt to; the options are the exact, r
 | Page type | Options |
 |---|---|
 | **Dashboard** | *kpis:* four-cards, stat-strip, hero-number &nbsp;·&nbsp; *chart:* area-full, bar-full, line-full, split-two, three-small, four-grid, none &nbsp;·&nbsp; *table:* data-table, simple-list, none |
+| **Loanbook** | table-with-aside, full-table |
+| **Collateral management** | status-table, at-risk-focus |
+| **Borrowers** | organizations-table, entities-table |
 | **Charts & reports** | area-gallery, bar-gallery, line-gallery, pie-gallery, radar-radial-gallery, interactive-stack |
 | **Settings & preferences** | grouped-cards, compact-card, tabbed, section-nav |
 | **Notifications** | center-tabs, preferences, caught-up-empty |
@@ -54,13 +57,15 @@ Every row is a page type Jev can route a prompt to; the options are the exact, r
 
 On top of its own options, every page type also independently samples one or more shared placement slots, which is what keeps two dashboards or two login screens from looking alike beyond just the block that's picked:
 
-- **In-product screens** (dashboard, charts, settings, notifications, billing, ai-chat, messaging, calendar, kanban, profile, empty-state) sample **nav**: `sidebar`, `rail`, `topbar` — and (except dashboard/billing) **content**: `full`, `narrow`, `with-aside`, `with-page-header`, `header-and-aside`.
+- **In-product screens** (dashboard, loanbook, collateral, borrowers, charts, settings, notifications, billing, ai-chat, messaging, calendar, kanban, profile, empty-state) sample **nav**: `pinned`, `collapsed` (HQ pages sidebar) — and (except dashboard/billing/loanbook/collateral/borrowers) **content**: `full`, `narrow`, `with-aside`, `with-page-header`, `header-and-aside`.
 - **Centered screens** (login, signup, onboarding, error-page) sample **backdrop**: `plain`, `muted`, `dot-grid`, `gradient`, `mesh-gradient`, `grain-gradient`, `waves`, `dot-orbit`.
 - **Marketing screens** (pricing, faq, landing) sample **chrome**: `none`, `header-inline-nav`, `header-centered-nav`, `header-sticky-cta` — and a shader **background** behind the hero/section: `none`, `mesh-gradient`, `grain-gradient`, `waves`, `dot-orbit`.
 
 ## Getting started
 
-**Prerequisites:** Node 20+, and a Jev (TypeSafe) API key.
+**Prerequisites:** Node 20+, and a [Vercel AI Gateway](https://vercel.com/docs/ai-gateway) API key (the gateway serves `typesafe-ai/jev`). Put the key in this repo's `.env` only.
+
+Do **not** run `npx vercel ai-gateway setup` — that rewrites Claude / Cursor / Grok configs on your machine.
 
 ```bash
 npm install
@@ -70,8 +75,10 @@ cp .env.example .env
 Fill in `.env`:
 
 ```
-TYPESAFE_API_KEY=your-key-here
+AI_GATEWAY_API_KEY=your-vercel-ai-gateway-key
 ```
+
+The app hardcodes `typesafe-ai/jev`. There is no `JEV_MODEL` override and no fallback to Claude/GPT/Grok. If the gateway ever serves a different model, the request fails.
 
 ```bash
 npm run dev
@@ -87,13 +94,17 @@ src/
     pages.ts          # the vocabulary: page types, slots, named options
     sample.ts          # floor + weighted sampling w/o replacement
     page-client.ts      # calls the dev-only /api/generate-page route
+    product-brief.ts  # Maple HQ context sent to Jev as state
+    hq-chrome.ts      # icon-rail domains + pages-sidebar labels
+    hq-fixtures.ts    # loan / collateral / borrower seed rows
   components/
     canvas/            # infinite canvas + per-frame node (@xyflow/react)
     pages/
-      AppShell.tsx       # shared nav + content-frame chrome for app screens
+      AppShell.tsx / HqShell.tsx  # Maple HQ chrome for in-product screens
       BlockPages.tsx      # slot option name -> real component, for simple page types
       registry.ts         # page type id -> renderer component
-      DashboardPage.tsx, BillingPage.tsx, ChartsPage.tsx, LandingPage.tsx
+      DashboardPage.tsx, LoanbookPage.tsx, CollateralPage.tsx, BorrowersPage.tsx,
+      BillingPage.tsx, ChartsPage.tsx, LandingPage.tsx
                           # composed renderers for page types with multiple independent slots
     blocks/, efferd/, magicui/, shadcnblocks/, reui/, ui/
                           # vendored real component material, one dir per registry source

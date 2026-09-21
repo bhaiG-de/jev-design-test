@@ -68,7 +68,7 @@ const GALLERIES: Record<string, ComponentType> = {
 export function ChartsPage({ schema }: { schema: Record<string, string> }) {
   const Gallery = GALLERIES[schema.layout] ?? GALLERIES["area-gallery"];
   return (
-    <AppFrame nav={schema.nav}>
+    <AppFrame nav={schema.nav} pageId="charts">
       <ContentFrame mode={schema.content} title="Charts & reports">
         <Gallery />
       </ContentFrame>

@@ -38,6 +38,7 @@ const RADII: Record<string, string> = {
   xl: "1.25rem",
 }
 const FONTS: Record<string, string> = {
+  Geist: "'Geist Variable', Geist, sans-serif",
   Inter: "'Inter Variable', 'Inter', sans-serif",
   Manrope: "'Manrope', sans-serif",
   "DM Sans": "'DM Sans', sans-serif",
@@ -72,11 +73,11 @@ interface Choice {
 }
 
 const PRESET_DEFAULT: Choice = {
-  base: "zinc",
-  accent: "blue",
-  chart: "accent",
+  base: "maple-hq",
+  accent: null,
+  chart: "base",
   radius: "default",
-  font: "Inter",
+  font: "Geist",
   heading: "inherit",
   menu: "default",
   menuAccent: "subtle",
@@ -84,13 +85,15 @@ const PRESET_DEFAULT: Choice = {
 }
 
 function cssValue(raw: string) {
-  return /^[\d.]+ [\d.]+% [\d.]+%$/.test(raw.trim()) ? `hsl(${raw.trim()})` : raw
+  const v = raw.trim()
+  if (v.startsWith("oklch") || v.startsWith("hsl(") || v.startsWith("var(")) return v
+  return /^[\d.]+ [\d.]+% [\d.]+%$/.test(v) ? `hsl(${v})` : raw
 }
 
 // Google Fonts, loaded once per family on first use.
 const loadedFonts = new Set<string>()
 function ensureFont(family: string) {
-  if (family === "Inter" || family === "inherit" || loadedFonts.has(family)) return
+  if (family === "Inter" || family === "Geist" || family === "inherit" || loadedFonts.has(family)) return
   loadedFonts.add(family)
   const link = document.createElement("link")
   link.rel = "stylesheet"
@@ -138,6 +141,11 @@ function applyChoice(c: Choice) {
     vars["--chart-3"] = at(-3)["500"]
     vars["--chart-4"] = at(6)["400"]
     vars["--chart-5"] = at(-6)["400"]
+  } else if (tokens["chart-1"]) {
+    ;[1, 2, 3, 4, 5].forEach((i) => {
+      const t = tokens[`chart-${i}`]
+      if (t) vars[`--chart-${i}`] = cssValue(t)
+    })
   } else {
     ;["foreground", "muted-foreground", "border", "input", "muted"].forEach(
       (t, i) => (vars[`--chart-${i + 1}`] = cssValue(tokens[t] ?? "0 0% 50%")),
@@ -319,7 +327,7 @@ export function ThemeMenu({
             <span className="ml-auto truncate text-[11px] font-normal text-muted-foreground">
               {choice
                 ? `${current.base} · ${current.accent ?? "no accent"} · ${current.font}`
-                : "zinc · blue · Inter"}
+                : "maple-hq · Geist"}
             </span>
           </div>
 

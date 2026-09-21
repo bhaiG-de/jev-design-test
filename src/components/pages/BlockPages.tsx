@@ -264,7 +264,7 @@ function makeBlockPage(id: string, def: BlockPageDef): ComponentType<{ schema: R
     if (def.wrap === "shell") {
       const mode = def.ownHeader?.includes(schema.layout) ? (WITHOUT_HEADER[schema.content] ?? schema.content) : schema.content;
       return (
-        <AppFrame nav={schema.nav}>
+        <AppFrame nav={schema.nav} pageId={id}>
           <ContentFrame mode={mode} title={title} fill={def.fill} aside={ASIDES[id]}>
             <Block />
           </ContentFrame>
